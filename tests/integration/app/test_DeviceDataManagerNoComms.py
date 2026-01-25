@@ -57,8 +57,9 @@ class DeviceDataManagerNoCommsTest(unittest.TestCase):
 		ddMgr = DeviceDataManager()
 		ddMgr.startManager()
 		
-		sleep(120) # 2 minutes
-		
+		#sleep(120) # 2 minutes
+		sleep(30) #Shorten the runtime
+
 		ddMgr.stopManager()
 
 if __name__ == "__main__":

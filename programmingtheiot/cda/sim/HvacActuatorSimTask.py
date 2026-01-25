@@ -11,6 +11,7 @@
 # 
 import logging
 import random
+import programmingtheiot.common.ConfigConst as ConfigConst
 
 from programmingtheiot.data.ActuatorData import ActuatorData
 from programmingtheiot.cda.sim.BaseActuatorSimTask import BaseActuatorSimTask
@@ -22,5 +23,9 @@ class HvacActuatorSimTask(BaseActuatorSimTask):
 	"""
 
 	def __init__(self):
-		pass
+		super( \
+			HvacActuatorSimTask, self).__init__( \
+				name = ConfigConst.HVAC_ACTUATOR_NAME, \
+				typeID = ConfigConst.HVAC_ACTUATOR_TYPE, \
+				simpleName = "HVAC")
 		

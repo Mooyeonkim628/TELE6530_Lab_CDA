@@ -20,9 +20,14 @@ import programmingtheiot.common.ConfigConst as ConfigConst
 
 from programmingtheiot.common.ConfigUtil import ConfigUtil
 
-from programmingtheiot.cda.system.SystemPerformanceManager import SystemPerformanceManager
+from programmingtheiot.cda.app.DeviceDataManager import DeviceDataManager
 
-logging.basicConfig(format = '%(asctime)s:%(name)s:%(levelname)s:%(message)s', level = logging.DEBUG)
+logging.basicConfig(
+    format='%(asctime)s:%(name)s:%(levelname)s:%(message)s',
+    level=logging.DEBUG,
+    force=True
+)
+
 
 class ConstrainedDeviceApp():
 	"""
@@ -38,7 +43,7 @@ class ConstrainedDeviceApp():
 		"""
 		logging.info("Initializing CDA...")
 		
-		self.sysPerfMgr = SystemPerformanceManager()
+		self.dataMgr = DeviceDataManager()
 		
 		#self.isStarted = False
 
@@ -54,7 +59,7 @@ class ConstrainedDeviceApp():
 		"""
 		logging.info("Starting CDA...")
 		
-		self.sysPerfMgr.startManager()
+		self.dataMgr.startManager()
 		
 		logging.info("CDA started.")
 
@@ -65,7 +70,7 @@ class ConstrainedDeviceApp():
 		"""
 		logging.info("CDA stopping...")
 		
-		self.sysPerfMgr.stopManager()
+		self.dataMgr.stopManager()
 		
 		logging.info("CDA stopped with exit code %s.", str(code))
 		
@@ -111,9 +116,9 @@ def main():
 			
 		else:
 			# run CDA for ~65 seconds then exit
-			if (cda.isAppStarted()):
-				sleep(65)
-				cda.stopApp(0)
+			#if (cda.isAppStarted()):
+			sleep(65)
+			cda.stopApp(0)
 			
 	except KeyboardInterrupt:
 		logging.warning('Keyboard interruption for CDA. Exiting.')
