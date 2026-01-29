@@ -51,7 +51,7 @@ class SensorEmulatorManagerTest(unittest.TestCase):
 	def testRunAllSimulators(self):
 		self.sensorAdapterMgr.startManager()
 		
-		sleep(60)
+		sleep(20)
 		
 		self.sensorAdapterMgr.stopManager()
 

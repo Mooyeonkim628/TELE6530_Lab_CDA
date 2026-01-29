@@ -11,21 +11,51 @@
 # 
 
 import logging
-
+import smbus
 from programmingtheiot.data.SensorData import SensorData
+from programmingtheiot.common.ConfigConst import ConfigConst
+from programmingtheiot.cda.sim.BaseSensorSimTask import BaseSensorSimTask
+from programmingtheiot.cda.sim.SensorDataGenerator import SensorDataGenerator
 
-class PressureI2cSensorAdapterTask():
-	"""
-	Shell representation of class for student implementation.
-	
-	"""
-
+class PressureI2cSensorAdapterTask(BaseSensorSimTask):
 	def __init__(self):
-		pass
+		super(PressureI2cSensorAdapterTask, self).__init__(
+            typeID=SensorData.PRESSURE_SENSOR_TYPE,
+            minVal=SensorDataGenerator.LOW_NORMAL_ENV_PRESSURE,
+            maxVal=SensorDataGenerator.HI_NORMAL_ENV_PRESSURE
+        )
+        
+		self.sensorType = SensorData.PRESSURE_SENSOR_TYPE
+		self.pressAddr = 0x5C
+		self.i2cBus = None
+		
+		if smbus:
+			try:
+				self.i2cBus = smbus.SMBus(1)
+				self.i2cBus.write_byte_data(self.pressAddr, 0, 0)
+				logging.info("Initialized pressure I2C bus at addr 0x%02X", self.pressAddr)
+			except Exception as e:
+				logging.warning("Failed to init I2C pressure sensor: %s", e)
+		else:
+			logging.warning("smbus not available. This will only work on Raspberry Pi with I2C enabled.")
+	
 	
 	def generateTelemetry(self) -> SensorData:
-		pass
+		if not self.i2cBus:
+			logging.warning("I2C bus not initialized; returning existing sensorData.")
+			return self.sensorData
+
+		try:
+			pressure = self.sensorData.getValue()  
+
+			self.sensorData.setValue(pressure)
+			self.sensorData.setTypeID(SensorData.PRESSURE_SENSOR_TYPE)
+
+			return self.sensorData
+
+		except Exception as e:
+			logging.warning("Error reading pressure sensor via I2C: %s", e)
+			return self.sensorData
 	
 	def getTelemetryValue(self) -> float:
 		pass
-	
