@@ -42,7 +42,10 @@ class SensorAdapterManager(object):
 		self.useEmulator  = \
 			self.configUtil.getBoolean( \
 				section = ConfigConst.CONSTRAINED_DEVICE, key = ConfigConst.ENABLE_EMULATOR_KEY)
-			
+
+		self.useSenseHat = self.configUtil.getBoolean(
+    		section = ConfigConst.CONSTRAINED_DEVICE, key=ConfigConst.ENABLE_SENSE_HAT_KEY)
+
 		self.locationID   = \
 			self.configUtil.getProperty( \
 				section = ConfigConst.CONSTRAINED_DEVICE, key = ConfigConst.DEVICE_LOCATION_ID_KEY, defaultVal = ConfigConst.NOT_SET)
@@ -119,7 +122,7 @@ class SensorAdapterManager(object):
 				section = ConfigConst.CONSTRAINED_DEVICE, key = ConfigConst.PRESSURE_SIM_FLOOR_KEY, defaultVal = SensorDataGenerator.LOW_NORMAL_ENV_PRESSURE)
 		pressureCeiling = \
 			self.configUtil.getFloat( \
-				section = ConfigConst.CONSTRAINED_DEVICE, key = ConfigConst.PRESSURE_SIM_CEILING_KEY, defaultVal = SensorDataGenerator.HI_NORMAL_ENV_PRESSURE)
+				section = ConfigConst.CONSTRAINED_DEVICE, key = ConfigConst.PRESSURE_SIM_CEILING_KEY, defaultVal = SensorDataGenerator.LOW_NORMAL_ENV_PRESSURE)
 		
 		tempFloor       = \
 			self.configUtil.getFloat( \
@@ -127,7 +130,26 @@ class SensorAdapterManager(object):
 		tempCeiling     = \
 			self.configUtil.getFloat( \
 				section = ConfigConst.CONSTRAINED_DEVICE, key = ConfigConst.TEMP_SIM_CEILING_KEY, defaultVal = SensorDataGenerator.HI_NORMAL_INDOOR_TEMP)
-		
+		if self.useSenseHat:
+			try:
+				heModule = import_module('programmingtheiot.cda.embedded.HumidityI2cSensorAdapterTask')
+				heClazz  = getattr(heModule, 'HumidityI2cSensorAdapterTask')
+				self.humidityAdapter = heClazz()
+
+				peModule = import_module('programmingtheiot.cda.embedded.PressureI2cSensorAdapterTask')
+				peClazz  = getattr(peModule, 'PressureI2cSensorAdapterTask')
+				self.pressureAdapter = peClazz()
+
+				teModule = import_module('programmingtheiot.cda.embedded.TemperatureI2cSensorAdapterTask')
+				teClazz  = getattr(teModule, 'TemperatureI2cSensorAdapterTask')
+				self.tempAdapter = teClazz()
+
+				logging.info("Using Sense HAT I2C sensor tasks.")
+				return
+			except Exception as e:
+				logging.warning("Sense HAT enabled but failed to load I2C tasks. Falling back. Error: %s", e)		
+
+
 		if not self.useEmulator:
 			self.dataGenerator = SensorDataGenerator()
 			
@@ -144,3 +166,16 @@ class SensorAdapterManager(object):
 			self.humidityAdapter = HumiditySensorSimTask(dataSet = humidityData)
 			self.pressureAdapter = PressureSensorSimTask(dataSet = pressureData)
 			self.tempAdapter     = TemperatureSensorSimTask(dataSet = tempData)
+
+		else:
+			heModule = import_module('programmingtheiot.cda.emulated.HumiditySensorEmulatorTask', 'HumiditySensorEmulatorTask')
+			heClazz = getattr(heModule, 'HumiditySensorEmulatorTask')
+			self.humidityAdapter = heClazz()
+			
+			peModule = import_module('programmingtheiot.cda.emulated.PressureSensorEmulatorTask', 'PressureSensorEmulatorTask')
+			peClazz = getattr(peModule, 'PressureSensorEmulatorTask')
+			self.pressureAdapter = peClazz()
+			
+			teModule = import_module('programmingtheiot.cda.emulated.TemperatureSensorEmulatorTask', 'TemperatureSensorEmulatorTask')
+			teClazz = getattr(teModule, 'TemperatureSensorEmulatorTask')
+			self.tempAdapter = teClazz()
