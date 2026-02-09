@@ -94,7 +94,10 @@ class RedisPersistenceAdapter:
                 payload = json.dumps({"data": str(data)})
 
             subs = self.redisClient.publish(topic, payload)
-            return subs > 0
+            if subs == 0:
+                self._Logger.debug("Publish succeeded but no subscribers were listening.")
+
+            return True
 
         except Exception as e:
             self._Logger.error(f"Failed to store data in Redis: {e}")
