@@ -33,11 +33,11 @@ class EmbeddedSensorAdapterTest(unittest.TestCase):
             raise unittest.SkipTest("ENABLE_EMULATOR_KEY is True. For embedded test, set enableEmulator=False.")
 
         try:
-            import smbus  # noqa: F401
+            import smbus  
         except ImportError:
             raise unittest.SkipTest("smbus not available. This test requires Raspberry Pi + Sense HAT (I2C).")
 
-        logging.info("Testing SensorAdapterManager class [using Sense HAT I2C / embedded]...")  # [CHANGED]
+        logging.info("Testing SensorAdapterManager class [using Sense HAT I2C / embedded]...")  
 
         cls.defaultMsgListener = DefaultDataMessageListener()
         cls.sensorAdapterMgr = SensorAdapterManager()

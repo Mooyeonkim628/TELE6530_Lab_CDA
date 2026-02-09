@@ -34,6 +34,15 @@ enableAuth     = False
 enableCrypt    = False
 
 #
+# Data configuration information
+#
+[Data.GatewayService]
+host           = localhost
+port           = 6380
+enableCrypt    = False
+credFile       = ./cred/PiotPersistenceCred.props
+
+#
 # CDA specific configuration information
 #
 [ConstrainedDevice]
