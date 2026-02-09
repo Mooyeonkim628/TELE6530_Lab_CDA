@@ -31,6 +31,8 @@ from programmingtheiot.data.DataUtil import DataUtil
 from programmingtheiot.data.ActuatorData import ActuatorData
 from programmingtheiot.data.SensorData import SensorData
 from programmingtheiot.data.SystemPerformanceData import SystemPerformanceData
+from programmingtheiot.cda.connection.RedisPersistenceAdapter import RedisPersistenceAdapter
+
 
 class DeviceDataManager(IDataMessageListener):
 	"""
@@ -60,7 +62,10 @@ class DeviceDataManager(IDataMessageListener):
 		self.mqttClient         = None
 		self.coapClient         = None
 		self.coapServer         = None
-		
+
+		self.enableRedisStore = True   
+		self.redisClient = RedisPersistenceAdapter()
+
 		if self.enableSystemPerf:
 			self.sysPerfMgr = SystemPerformanceManager()
 			self.sysPerfMgr.setDataMessageListener(self)
@@ -178,7 +183,18 @@ class DeviceDataManager(IDataMessageListener):
 		@return boolean
 		"""
 		if data:
-			logging.debug("Incoming sensor data received (from sensor manager): " + str(data))
+			logging.debug(
+				"Incoming sensor data received (from sensor manager): %s value=%s",
+				str(data),
+				str(data.getValue())
+			)
+
+			if self.enableRedisStore and self.redisClient:
+				try:
+					self.redisClient.storeData(ResourceNameEnum.CDA_SENSOR_MSG_RESOURCE, data)
+				except Exception as e:
+					logging.warning(f"Failed to store SensorData to Redis: {e}")
+
 			self._handleSensorDataAnalysis(data = data)
 			return True
 		else:
@@ -215,7 +231,9 @@ class DeviceDataManager(IDataMessageListener):
 		
 		if self.sensorAdapterMgr:
 			self.sensorAdapterMgr.startManager()
-		
+
+		if self.redisClient and self.enableRedisStore:
+			self.redisClient.connectClient()
 		logging.info("Started DeviceDataManager.")
 		
 	def stopManager(self):
@@ -226,7 +244,10 @@ class DeviceDataManager(IDataMessageListener):
 		
 		if self.sensorAdapterMgr:	
 			self.sensorAdapterMgr.stopManager()
-			
+
+		if self.redisClient and self.enableRedisStore:
+			self.redisClient.disconnectClient()
+
 		logging.info("Stopped DeviceDataManager.")
 		
 	def _handleIncomingDataAnalysis(self, msg: str):
