@@ -37,7 +37,7 @@ class MqttClientConnectorTest(unittest.TestCase):
 		logging.info("Testing MqttClientConnector class...")
 		
 		self.cfg = ConfigUtil()
-		self.mcc = MqttClientConnector()
+		self.mcc = MqttClientConnector(clientID = "TestMqttClient001")
 		
 	def setUp(self):
 		pass
@@ -74,7 +74,7 @@ class MqttClientConnectorTest(unittest.TestCase):
 		
 		self.mcc.disconnectClient()
 
-	@unittest.skip("Ignore for now.")
+	#@unittest.skip("Ignore for now.")
 	def testNewActuatorCmdPubSub(self):
 		qos = 1
 	
