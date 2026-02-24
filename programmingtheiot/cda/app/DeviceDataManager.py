@@ -51,6 +51,11 @@ class DeviceDataManager(IDataMessageListener):
 			self.configUtil.getBoolean( \
 				section = ConfigConst.CONSTRAINED_DEVICE, key = ConfigConst.ENABLE_SENSING_KEY)
 		
+		self.enableMqttClient = \
+			self.configUtil.getBoolean( \
+				section = ConfigConst.CONSTRAINED_DEVICE, key = ConfigConst.ENABLE_MQTT_CLIENT_KEY)
+		
+		
 		# NOTE: this can also be retrieved from the configuration file
 		self.enableActuation    = True
 		
@@ -63,8 +68,12 @@ class DeviceDataManager(IDataMessageListener):
 		self.coapClient         = None
 		self.coapServer         = None
 
-		self.enableRedisStore = True   
-		self.redisClient = RedisPersistenceAdapter()
+		self.enableRedisStore = self.configUtil.getBoolean(
+			section=ConfigConst.CONSTRAINED_DEVICE,
+			key="enablePersistenceClient"
+		)
+
+		self.redisClient = RedisPersistenceAdapter() if self.enableRedisStore else None
 
 		if self.enableSystemPerf:
 			self.sysPerfMgr = SystemPerformanceManager()
@@ -79,6 +88,10 @@ class DeviceDataManager(IDataMessageListener):
 		if self.enableActuation:
 			self.actuatorAdapterMgr = ActuatorAdapterManager(dataMsgListener = self)
 			logging.info("Local actuation capabilities enabled")
+
+		if self.enableMqttClient:
+			self.mqttClient = MqttClientConnector()
+			self.mqttClient.setDataMessageListener(self)			
 		
 		self.handleTempChangeOnDevice = \
 			self.configUtil.getBoolean( \
@@ -234,6 +247,11 @@ class DeviceDataManager(IDataMessageListener):
 
 		if self.redisClient and self.enableRedisStore:
 			self.redisClient.connectClient()
+
+		if self.mqttClient:
+			self.mqttClient.connectClient()
+			self.mqttClient.subscribeToTopic(ResourceNameEnum.CDA_ACTUATOR_CMD_RESOURCE, callback = self.handleIncomingMessage, qos = ConfigConst.DEFAULT_QOS)
+
 		logging.info("Started DeviceDataManager.")
 		
 	def stopManager(self):
@@ -247,6 +265,10 @@ class DeviceDataManager(IDataMessageListener):
 
 		if self.redisClient and self.enableRedisStore:
 			self.redisClient.disconnectClient()
+
+		if self.mqttClient:
+			self.mqttClient.unsubscribeFromTopic(ResourceNameEnum.CDA_ACTUATOR_CMD_RESOURCE)
+			self.mqttClient.disconnectClient()
 
 		logging.info("Stopped DeviceDataManager.")
 		

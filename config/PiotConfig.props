@@ -11,6 +11,7 @@
 # MQTT client configuration information
 #
 [Mqtt.GatewayService]
+clientID       = CDA_Mooyeon_Kim
 credFile       = ./cred/PiotMqttLocalCred.props
 certFile       = ./cert/PiotMqttLocalCertFile.pem
 host           = localhost
@@ -46,14 +47,15 @@ credFile       = ./cred/PiotPersistenceCred.props
 # CDA specific configuration information
 #
 [ConstrainedDevice]
-deviceLocationID = constraineddevice001
+deviceLocationID = CDA_Mooyeon_Kim
 enableEmulator   = True 
 enableSenseHAT   = False
 enableMqttClient = True
 enableCoapServer = False
 enableCoapClient = False
-enableSystemPerformance = True
-enableSensing    = True
+enablePersistenceClient = False
+enableSystemPerformance = False
+enableSensing    = False
 enableSimulator = True
 enableLogging    = True
 pollCycleSecs    = 5
