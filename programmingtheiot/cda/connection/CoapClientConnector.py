@@ -22,6 +22,7 @@ from programmingtheiot.common.ResourceNameEnum import ResourceNameEnum
 from programmingtheiot.common.IDataMessageListener import IDataMessageListener
 from programmingtheiot.cda.connection.IRequestResponseClient import IRequestResponseClient
 
+
 class CoapClientConnector(IRequestResponseClient):
 	"""
 	Shell representation of class for student implementation.

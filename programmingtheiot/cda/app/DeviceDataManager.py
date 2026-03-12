@@ -32,7 +32,7 @@ from programmingtheiot.data.ActuatorData import ActuatorData
 from programmingtheiot.data.SensorData import SensorData
 from programmingtheiot.data.SystemPerformanceData import SystemPerformanceData
 from programmingtheiot.cda.connection.RedisPersistenceAdapter import RedisPersistenceAdapter
-
+from programmingtheiot.cda.connection.CoapServerAdapter import CoapServerAdapter
 
 class DeviceDataManager(IDataMessageListener):
 	"""
@@ -54,8 +54,10 @@ class DeviceDataManager(IDataMessageListener):
 		self.enableMqttClient = \
 			self.configUtil.getBoolean( \
 				section = ConfigConst.CONSTRAINED_DEVICE, key = ConfigConst.ENABLE_MQTT_CLIENT_KEY)
-		
-		
+		self.enableCoapServer = \
+			self.configUtil.getBoolean( \
+				section = ConfigConst.CONSTRAINED_DEVICE, key = ConfigConst.ENABLE_COAP_SERVER_KEY)	
+				
 		# NOTE: this can also be retrieved from the configuration file
 		self.enableActuation    = True
 		
@@ -67,6 +69,9 @@ class DeviceDataManager(IDataMessageListener):
 		self.mqttClient         = None
 		self.coapClient         = None
 		self.coapServer         = None
+
+		self.sysPerfDataListener = None
+		self.telemetryDataListener = None
 
 		self.enableRedisStore = self.configUtil.getBoolean(
 			section=ConfigConst.CONSTRAINED_DEVICE,
@@ -92,7 +97,13 @@ class DeviceDataManager(IDataMessageListener):
 		if self.enableMqttClient:
 			self.mqttClient = MqttClientConnector()
 			self.mqttClient.setDataMessageListener(self)			
-		
+
+		if self.enableCoapServer:
+			logging.info("Creating CoapServerAdapter now")
+			self.coapServer = CoapServerAdapter(dataMsgListener=self)
+		else:
+			logging.info("CoAP server disabled")
+
 		self.handleTempChangeOnDevice = \
 			self.configUtil.getBoolean( \
 				ConfigConst.CONSTRAINED_DEVICE, ConfigConst.HANDLE_TEMP_CHANGE_ON_DEVICE_KEY)
@@ -105,6 +116,11 @@ class DeviceDataManager(IDataMessageListener):
 			self.configUtil.getFloat( \
 				ConfigConst.CONSTRAINED_DEVICE, ConfigConst.TRIGGER_HVAC_TEMP_CEILING_KEY);
 		
+		logging.info("DeviceDataManager init start")
+		logging.info("enableCoapServer = %s", str(self.enableCoapServer))
+		logging.info("enableMqttClient = %s", str(self.enableMqttClient))
+		logging.info("enableSensing = %s", str(self.enableSensing))
+
 	def getLatestActuatorDataResponseFromCache(self, name: str = None) -> ActuatorData:
 		"""
 		Retrieves the named actuator data (response) item from the internal data cache.
@@ -231,10 +247,22 @@ class DeviceDataManager(IDataMessageListener):
 			return False
 	
 	def setSystemPerformanceDataListener(self, listener: ISystemPerformanceDataListener = None):
-		pass
+		if listener:
+			self.sysPerfDataListener = listener
+			return True
+	
+		return False
 			
 	def setTelemetryDataListener(self, name: str = None, listener: ITelemetryDataListener = None):
-		pass
+		if listener:
+			self.telemetryDataListener = listener
+			return True
+		
+		if name and isinstance(name, ITelemetryDataListener):
+			self.telemetryDataListener = name
+			return True
+		
+		return False
 			
 	def startManager(self):
 		logging.info("Starting DeviceDataManager...")
@@ -251,6 +279,9 @@ class DeviceDataManager(IDataMessageListener):
 		if self.mqttClient:
 			self.mqttClient.connectClient()
 			self.mqttClient.subscribeToTopic(ResourceNameEnum.CDA_ACTUATOR_CMD_RESOURCE, callback = self.handleIncomingMessage, qos = ConfigConst.DEFAULT_QOS)
+		
+		if self.coapServer:
+			self.coapServer.startServer()
 
 		logging.info("Started DeviceDataManager.")
 		
@@ -269,6 +300,9 @@ class DeviceDataManager(IDataMessageListener):
 		if self.mqttClient:
 			self.mqttClient.unsubscribeFromTopic(ResourceNameEnum.CDA_ACTUATOR_CMD_RESOURCE)
 			self.mqttClient.disconnectClient()
+
+		if self.coapServer:
+			self.coapServer.stopServer()
 
 		logging.info("Stopped DeviceDataManager.")
 		
