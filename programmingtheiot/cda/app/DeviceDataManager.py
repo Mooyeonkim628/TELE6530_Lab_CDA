@@ -33,6 +33,7 @@ from programmingtheiot.data.SensorData import SensorData
 from programmingtheiot.data.SystemPerformanceData import SystemPerformanceData
 from programmingtheiot.cda.connection.RedisPersistenceAdapter import RedisPersistenceAdapter
 from programmingtheiot.cda.connection.CoapServerAdapter import CoapServerAdapter
+from programmingtheiot.cda.connection.CoapClientConnector import CoapClientConnector
 
 class DeviceDataManager(IDataMessageListener):
 	"""
@@ -57,7 +58,10 @@ class DeviceDataManager(IDataMessageListener):
 		self.enableCoapServer = \
 			self.configUtil.getBoolean( \
 				section = ConfigConst.CONSTRAINED_DEVICE, key = ConfigConst.ENABLE_COAP_SERVER_KEY)	
-				
+		self.enableCoapClient = \
+			self.configUtil.getBoolean( \
+				section = ConfigConst.CONSTRAINED_DEVICE, key = ConfigConst.ENABLE_COAP_CLIENT_KEY)
+
 		# NOTE: this can also be retrieved from the configuration file
 		self.enableActuation    = True
 		
@@ -103,6 +107,9 @@ class DeviceDataManager(IDataMessageListener):
 			self.coapServer = CoapServerAdapter(dataMsgListener=self)
 		else:
 			logging.info("CoAP server disabled")
+
+		if self.enableCoapClient:
+			self.coapClient = CoapClientConnector(dataMsgListener = self)
 
 		self.handleTempChangeOnDevice = \
 			self.configUtil.getBoolean( \
@@ -211,6 +218,9 @@ class DeviceDataManager(IDataMessageListener):
 		@param data The incoming SensorData message.
 		@return boolean
 		"""
+		if self.telemetryDataListener:
+			self.telemetryDataListener.onSensorDataUpdate(data)		
+			
 		if data:
 			logging.debug(
 				"Incoming sensor data received (from sensor manager): %s value=%s",
@@ -239,6 +249,9 @@ class DeviceDataManager(IDataMessageListener):
 		@param data The incoming SystemPerformanceData message.
 		@return boolean
 		"""
+		if self.sysPerfDataListener:
+			self.sysPerfDataListener.onSystemPerformanceDataUpdate(data)
+
 		if data:
 			logging.debug("Incoming system performance message received (from sys perf manager): " + str(data))
 			return True

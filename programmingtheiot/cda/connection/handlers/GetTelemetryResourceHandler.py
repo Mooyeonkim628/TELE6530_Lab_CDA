@@ -35,7 +35,7 @@ class GetTelemetryResourceHandler(Resource, ITelemetryDataListener):
 
 	def __init__(self, name: str = ConfigConst.SENSOR_MSG, coap_server = None, dataMsgListener: IDataMessageListener = None):
 		super(GetTelemetryResourceHandler, self).__init__( \
-			name, coap_server, visible = True, observable = True, allow_children = True)
+			name, coap_server, visible = True, observable = True, allow_children = False)
 
 		self.pollCycles = \
 			ConfigUtil().getInteger( \

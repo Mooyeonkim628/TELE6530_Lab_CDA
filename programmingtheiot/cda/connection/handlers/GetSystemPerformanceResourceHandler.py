@@ -28,7 +28,7 @@ from programmingtheiot.data.SystemPerformanceData import SystemPerformanceData
 class GetSystemPerformanceResourceHandler(Resource, ISystemPerformanceDataListener):
 	def __init__(self, name: str = ConfigConst.SYSTEM_PERF_MSG, coap_server = None, dataMsgListener: IDataMessageListener = None):
 		super(GetSystemPerformanceResourceHandler, self).__init__( \
-			name, coap_server, visible = True, observable = True, allow_children = True)
+			name, coap_server, visible = True, observable = True, allow_children = False)
 
 		self.pollCycles = \
 			ConfigUtil().getInteger( \

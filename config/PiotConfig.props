@@ -48,7 +48,7 @@ credFile       = ./cred/PiotPersistenceCred.props
 #
 [ConstrainedDevice]
 deviceLocationID = CDA_Mooyeon_Kim
-enableEmulator   = True 
+enableEmulator   = False 
 enableSenseHAT   = False
 enableMqttClient = False
 enableCoapServer = True
