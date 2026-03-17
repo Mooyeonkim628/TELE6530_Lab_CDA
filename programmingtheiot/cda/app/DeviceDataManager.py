@@ -231,6 +231,19 @@ class DeviceDataManager(IDataMessageListener):
 					logging.warning(f"Failed to store SensorData to Redis: {e}")
 
 			self._handleSensorDataAnalysis(data = data)
+
+			if self.coapClient:
+				try:
+					sensorMsg = DataUtil().sensorDataToJson(data)
+					logging.info("Sending SensorData upstream via CoAP PUT.")
+					self.coapClient.sendPutRequest(
+						resource = ResourceNameEnum.CDA_SENSOR_MSG_RESOURCE,
+						payload = sensorMsg,
+						enableCON = True
+					)
+				except Exception as e:
+					logging.warning(f"Failed to send SensorData upstream via CoAP PUT: {e}")
+
 			return True
 		else:
 			logging.warning("Incoming sensor data is invalid (null). Ignoring.")

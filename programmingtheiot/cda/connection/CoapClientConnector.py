@@ -98,7 +98,7 @@ class CoapClientConnector(IRequestResponseClient):
 		if resource or name:
 			resourcePath = self._createResourcePath(resource, name)
 			
-			logging.info(f"Issuing an awesome GET with path: {resourcePath}")
+			logging.info(f"Issuing GET with path: {resourcePath}")
 			
 			request = self.coapClient.mk_request(defines.Codes.GET, path = resourcePath)
 			request.token = generate_random_token(2)
@@ -198,14 +198,7 @@ class CoapClientConnector(IRequestResponseClient):
 					traceback.print_exception(type(e), e, e.__traceback__)
 			else:
 				logging.warning(f"No response yet for observed resource {resource}. Attempting to stop anyway.")
-				
-				try:
-					self.coapClient.cancel_observing(response = None, send_rst = True)
-					logging.info(f"Canceled observe for resource {resource}.")
-
-				except Exception as e:
-					logging.warning(f"Failed to cancel observe for resource {resource}.")
-					traceback.print_exception(type(e), e, e.__traceback__)
+				return
 	
 	def _initClient(self):
 		try:
@@ -258,7 +251,7 @@ class CoapClientConnector(IRequestResponseClient):
 			logging.warning("GET response invalid. Ignoring.")
 			return
 		
-		logging.info("GET response received.")
+		logging.info(f"GET response received: {response.payload}")
 		
 		jsonData = response.payload
 		locationPath = resourcePath.split('/')
