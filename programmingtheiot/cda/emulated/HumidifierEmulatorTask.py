@@ -28,36 +28,40 @@ class HumidifierEmulatorTask(BaseActuatorSimTask):
 	"""
 
 	def __init__(self):
-		super( \
-			HumidifierEmulatorTask, self).__init__( \
-				name = ConfigConst.HUMIDIFIER_ACTUATOR_NAME, \
-				typeID = ConfigConst.HUMIDIFIER_ACTUATOR_TYPE, \
+		super(
+			HumidifierEmulatorTask, self).__init__(
+				name = ConfigConst.HUMIDIFIER_ACTUATOR_NAME,
+				typeID = ConfigConst.HUMIDIFIER_ACTUATOR_TYPE,
 				simpleName = "HUMIDIFIER")
 		
 		enableEmulation = \
-			ConfigUtil().getBoolean( \
+			ConfigUtil().getBoolean(
 				ConfigConst.CONSTRAINED_DEVICE, ConfigConst.ENABLE_EMULATOR_KEY)
 		
 		self.sh = SenseHAT(emulate = enableEmulation)
 
 	def _activateActuator(self, val: float = ConfigConst.DEFAULT_VAL, stateData: str = None) -> int:
-		if self.sh.screen:
-			name = self.getSimpleName() or self.__class__.__name__
-			msg = name + ' ON: ' + str(val) + 'C'
+		if self.sh and self.sh.screen:
+			msg = stateData if stateData else "HUMIDIFIER ON"
+
+			logging.info("Emulating Humidifier actuator ON:")
+			self.sh.screen.scroll_text(msg)
+
 			return 0
 		else:
 			logging.warning("No SenseHAT LED screen instance to write.")
 			return -1
 
 	def _deactivateActuator(self, val: float = ConfigConst.DEFAULT_VAL, stateData: str = None) -> int:
-		if self.sh.screen:
-			name = self.getSimpleName() or self.__class__.__name__
-			msg = name + ' OFF'
-			
-			# optional sleep (5 seconds) for message to scroll before clearing display
-			sleep(5)
-			
+		if self.sh and self.sh.screen:
+			msg = stateData if stateData else "HUMIDIFIER OFF"
+
+			logging.info("Emulating Humidifier actuator OFF:")
+			self.sh.screen.scroll_text(msg)
+
+			sleep(1)
 			self.sh.screen.clear()
+
 			return 0
 		else:
 			logging.warning("No SenseHAT LED screen instance to clear / close.")

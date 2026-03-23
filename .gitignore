@@ -6,3 +6,6 @@
 **/piot-venv
 .venv
 .winvenv
+certs/*.crt
+certs/*.key
+cred/*.props
