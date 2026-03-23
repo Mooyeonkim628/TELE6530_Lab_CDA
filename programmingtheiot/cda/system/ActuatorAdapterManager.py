@@ -99,6 +99,9 @@ class ActuatorAdapterManager(object):
 				# passed to a callback function implemented in DeviceDataManager
 				# via IDataMessageListener
 
+				if responseData and self.dataMsgListener:
+					self.dataMsgListener.handleActuatorCommandResponse(responseData)
+
 				return responseData
 			else:
 				logging.warning("Location ID doesn't match. Ignoring actuation: (me) %s != (you) %s", str(self.locationID), str(data.getLocationID()))

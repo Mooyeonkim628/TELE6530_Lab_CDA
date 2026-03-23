@@ -13,14 +13,14 @@
 [Mqtt.GatewayService]
 clientID       = CDA_Mooyeon_Kim
 credFile       = ./cred/PiotMqttLocalCred.props
-certFile       = ./cert/PiotMqttLocalCertFile.pem
+certFile       = ./certs/ca.crt
 host           = localhost
 port           = 1883
 securePort     = 8883
 defaultQoS     = 0
 keepAlive      = 60
 enableAuth     = False
-enableCrypt    = False
+enableCrypt    = True
 
 #
 # CoAP client configuration information
@@ -49,14 +49,14 @@ credFile       = ./cred/PiotPersistenceCred.props
 [ConstrainedDevice]
 deviceLocationID = CDA_Mooyeon_Kim
 enableEmulator   = True 
-enableSenseHAT   = False
-enableMqttClient = False
-enableCoapServer = True
+enableSenseHAT   = True
+enableMqttClient = True
+enableCoapServer = False
 enableCoapClient = False
 enablePersistenceClient = False
 enableSystemPerformance = True
 enableSensing    = True
-enableSimulator = True
+enableSimulator  = False
 enableLogging    = True
 pollCycleSecs    = 5
 testGdaDataPath  = /tmp/gda-data
@@ -76,6 +76,10 @@ tempSimCeiling     =   25.0
 handleTempChangeOnDevice = True
 triggerHvacTempFloor     = 18.0
 triggerHvacTempCeiling   = 20.0
+
+handleHumidityChangeOnDevice = False
+triggerHumidifierHumidityFloor = 35.0
+triggerHumidifierHumidityCeiling = 45.0
 
 # camera settings
 streamHostAddr      = 127.0.0.1

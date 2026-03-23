@@ -217,7 +217,11 @@ class CoapClientConnector(IRequestResponseClient):
 				logging.info("CoAP client stopped.")
 			except Exception as e:
 				logging.warning("Failed to stop CoAP client: %s", str(e))
-	
+
+	def disconnectClient(self):
+		if self.coapClient:
+			self.coapClient.stop()
+
 	def _onDeleteResponse(self, response):
 		if not response:
 			logging.warning("DELETE response invalid. Ignoring.")
