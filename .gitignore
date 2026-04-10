@@ -9,3 +9,4 @@
 certs/*.crt
 certs/*.key
 cred/*.props
+config/PiotConfig.props

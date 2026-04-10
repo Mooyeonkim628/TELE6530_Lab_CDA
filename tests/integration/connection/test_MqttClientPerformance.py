@@ -28,6 +28,8 @@ class MqttClientConnectorTest(unittest.TestCase):
 	environment.
 	"""
 	NS_IN_MILLIS = 1000000
+	
+	# NOTE: We'll use only 10,000 requests for MQTT
 	MAX_TEST_RUNS = 10000
 	
 	@classmethod
@@ -41,7 +43,7 @@ class MqttClientConnectorTest(unittest.TestCase):
 	def tearDown(self):
 		pass
 
-	@unittest.skip("Ignore for now.")
+	#@unittest.skip("Ignore for now.")
 	def testConnectAndDisconnect(self):
 		startTime = time.time_ns()
 		
@@ -53,15 +55,15 @@ class MqttClientConnectorTest(unittest.TestCase):
 		
 		logging.info("Connect and Disconnect: " + str(elapsedMillis) + " ms")
 		
-	@unittest.skip("Ignore for now.")
+	#@unittest.skip("Ignore for now.")
 	def testPublishQoS0(self):
 		self._execTestPublish(self.MAX_TEST_RUNS, 0)
 
-	@unittest.skip("Ignore for now.")
+	#@unittest.skip("Ignore for now.")
 	def testPublishQoS1(self):
 		self._execTestPublish(self.MAX_TEST_RUNS, 1)
 
-	@unittest.skip("Ignore for now.")
+	#@unittest.skip("Ignore for now.")
 	def testPublishQoS2(self):
 		self._execTestPublish(self.MAX_TEST_RUNS, 2)
 
@@ -70,7 +72,7 @@ class MqttClientConnectorTest(unittest.TestCase):
 		
 		sensorData = SensorData()
 		payload = DataUtil().sensorDataToJson(sensorData)
-		payloadLen = len(payload)
+		
 		startTime = time.time_ns()
 		
 		for seqNo in range(0, maxTestRuns):
@@ -81,12 +83,7 @@ class MqttClientConnectorTest(unittest.TestCase):
 		
 		self.assertTrue(self.mqttClient.disconnectClient())
 		
-		logging.info( \
-			"\n\tTesting Publish: QoS = %r | msgs = %r | payload size = %r | start = %r | end = %r | elapsed = %r", \
-			qos, maxTestRuns, payloadLen, startTime / 1000, endTime / 1000, elapsedMillis / 1000)
-		
-		#logging.info("Publish message - QoS " + str(qos) + " [" + str(maxTestRuns) + "]: " + str(elapsedMillis) + " ms")
-	
+		logging.info("Publish message - QoS " + str(qos) + " [" + str(maxTestRuns) + "]: " + str(elapsedMillis) + " ms")	
 if __name__ == "__main__":
 	unittest.main()
 	

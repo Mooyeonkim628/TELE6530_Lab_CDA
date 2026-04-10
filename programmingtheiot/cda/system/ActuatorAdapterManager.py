@@ -1,15 +1,3 @@
-#####
-# 
-# This class is part of the Programming the Internet of Things
-# project, and is available via the MIT License, which can be
-# found in the LICENSE file at the top level of this repository.
-# 
-# You may find it more helpful to your design to adjust the
-# functionality, constants and interfaces (if there are any)
-# provided within in order to meet the needs of your specific
-# Programming the Internet of Things project.
-# 
-
 import logging
 
 from importlib import import_module
@@ -24,11 +12,7 @@ from programmingtheiot.cda.sim.HvacActuatorSimTask import HvacActuatorSimTask
 from programmingtheiot.cda.sim.HumidifierActuatorSimTask import HumidifierActuatorSimTask
 
 class ActuatorAdapterManager(object):
-	"""
-	Shell representation of class for student implementation.
-	
-	"""
-	
+
 	def __init__(self, dataMsgListener: IDataMessageListener = None):
 		self.dataMsgListener = dataMsgListener
 		
@@ -37,13 +21,16 @@ class ActuatorAdapterManager(object):
 		self.useSimulator = \
 			self.configUtil.getBoolean( \
 				section = ConfigConst.CONSTRAINED_DEVICE, key = ConfigConst.ENABLE_SIMULATOR_KEY)
-		self.useEmulator  = \
+		self.useEmulator = \
 			self.configUtil.getBoolean( \
 				section = ConfigConst.CONSTRAINED_DEVICE, key = ConfigConst.ENABLE_EMULATOR_KEY)
-		self.deviceID     = \
+		self.useSenseHat = \
+			self.configUtil.getBoolean( \
+				section = ConfigConst.CONSTRAINED_DEVICE, key = ConfigConst.ENABLE_SENSE_HAT_KEY)
+		self.deviceID = \
 			self.configUtil.getProperty( \
 				section = ConfigConst.CONSTRAINED_DEVICE, key = ConfigConst.DEVICE_LOCATION_ID_KEY, defaultVal = ConfigConst.NOT_SET)
-		self.locationID   = \
+		self.locationID = \
 			self.configUtil.getProperty( \
 				section = ConfigConst.CONSTRAINED_DEVICE, key = ConfigConst.DEVICE_LOCATION_ID_KEY, defaultVal = ConfigConst.NOT_SET)
 		
@@ -51,41 +38,56 @@ class ActuatorAdapterManager(object):
 		self.hvacActuator       = None
 		self.ledDisplayActuator = None
 		
-		# see PIOT-CDA-03-007 description for thoughts on the next line of code
 		self._initEnvironmentalActuationTasks()
 
 	def _initEnvironmentalActuationTasks(self):
-		if not self.useEmulator:
-			# load the environmental tasks for simulated actuation
-			self.humidifierActuator = HumidifierActuatorSimTask()
-			
-			# create the HVAC actuator
-			self.hvacActuator = HvacActuatorSimTask()
-		else:
-			hueModule = import_module('programmingtheiot.cda.emulated.HumidifierEmulatorTask', 'HumidiferEmulatorTask')
-			hueClazz = getattr(hueModule, 'HumidifierEmulatorTask')
+		if self.useSenseHat:
+			logging.info("Loading embedded actuator tasks (real hardware).")
+
+			# Humidifier: Kasa 스마트플러그
+			hueModule = import_module('programmingtheiot.cda.embedded.HumidifierKasaActuatorTask', 'HumidifierKasaActuatorTask')
+			hueClazz  = getattr(hueModule, 'HumidifierKasaActuatorTask')
 			self.humidifierActuator = hueClazz()
-			
-			# create the HVAC actuator emulator
-			hveModule = import_module('programmingtheiot.cda.emulated.HvacEmulatorTask', 'HvacEmulatorTask')
-			hveClazz = getattr(hveModule, 'HvacEmulatorTask')
+
+			# HVAC: IR 전송 태스크 사용
+			hveModule = import_module('programmingtheiot.cda.embedded.HvacI2cActuatorTask', 'HvacI2cActuatorTask')
+			hveClazz  = getattr(hveModule, 'HvacI2cActuatorTask')
 			self.hvacActuator = hveClazz()
-			
-			# create the LED display actuator emulator
+
+			# LED: 실제 Sense HAT LED 사용
 			leDisplayModule = import_module('programmingtheiot.cda.emulated.LedDisplayEmulatorTask', 'LedDisplayEmulatorTask')
 			leClazz = getattr(leDisplayModule, 'LedDisplayEmulatorTask')
 			self.ledDisplayActuator = leClazz()
 
+		elif self.useEmulator:
+			logging.info("Loading emulated actuator tasks (pisense emulator).")
+
+			hueModule = import_module('programmingtheiot.cda.emulated.HumidifierEmulatorTask', 'HumidifierEmulatorTask')
+			hueClazz  = getattr(hueModule, 'HumidifierEmulatorTask')
+			self.humidifierActuator = hueClazz()
+
+			hveModule = import_module('programmingtheiot.cda.emulated.HvacEmulatorTask', 'HvacEmulatorTask')
+			hveClazz  = getattr(hveModule, 'HvacEmulatorTask')
+			self.hvacActuator = hveClazz()
+
+			leDisplayModule = import_module('programmingtheiot.cda.emulated.LedDisplayEmulatorTask', 'LedDisplayEmulatorTask')
+			leClazz = getattr(leDisplayModule, 'LedDisplayEmulatorTask')
+			self.ledDisplayActuator = leClazz()
+
+		else:
+			logging.info("Loading sim actuator tasks.")
+			self.humidifierActuator = HumidifierActuatorSimTask()
+			self.hvacActuator       = HvacActuatorSimTask()
+			# ledDisplayActuator은 sim 없으므로 None 유지
+
 	def sendActuatorCommand(self, data: ActuatorData) -> ActuatorData:
 		if data and not data.isResponseFlagEnabled():
-			# first check if the actuation event is destined for this device
 			if data.getLocationID() == self.locationID:
 				logging.info("Actuator command received for location ID %s. Processing...", str(data.getLocationID()))
 				
 				aType = data.getTypeID()
 				responseData = None
 				
-				# TODO: implement appropriate logging and error handling
 				if aType == ConfigConst.HUMIDIFIER_ACTUATOR_TYPE and self.humidifierActuator:
 					responseData = self.humidifierActuator.updateActuator(data)
 				elif aType == ConfigConst.HVAC_ACTUATOR_TYPE and self.hvacActuator:
@@ -94,10 +96,6 @@ class ActuatorAdapterManager(object):
 					responseData = self.ledDisplayActuator.updateActuator(data)
 				else:
 					logging.warning("No valid actuator type. Ignoring actuation for type: %s", data.getTypeID())
-					
-				# TODO: in a later lab module, the responseData instance will be
-				# passed to a callback function implemented in DeviceDataManager
-				# via IDataMessageListener
 
 				if responseData and self.dataMsgListener:
 					self.dataMsgListener.handleActuatorCommandResponse(responseData)

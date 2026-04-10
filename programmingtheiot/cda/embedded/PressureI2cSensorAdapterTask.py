@@ -1,61 +1,43 @@
-#####
-# 
-# This class is part of the Programming the Internet of Things
-# project, and is available via the MIT License, which can be
-# found in the LICENSE file at the top level of this repository.
-# 
-# You may find it more helpful to your design to adjust the
-# functionality, constants and interfaces (if there are any)
-# provided within in order to meet the needs of your specific
-# Programming the Internet of Things project.
-# 
-
 import logging
-import smbus
+from sense_hat import SenseHat
 from programmingtheiot.data.SensorData import SensorData
 from programmingtheiot.common.ConfigConst import ConfigConst
 from programmingtheiot.cda.sim.BaseSensorSimTask import BaseSensorSimTask
 from programmingtheiot.cda.sim.SensorDataGenerator import SensorDataGenerator
 
 class PressureI2cSensorAdapterTask(BaseSensorSimTask):
-	def __init__(self):
-		super(PressureI2cSensorAdapterTask, self).__init__(
+    def __init__(self):
+        super(PressureI2cSensorAdapterTask, self).__init__(
             typeID=SensorData.PRESSURE_SENSOR_TYPE,
             minVal=SensorDataGenerator.LOW_NORMAL_ENV_PRESSURE,
             maxVal=SensorDataGenerator.HI_NORMAL_ENV_PRESSURE
         )
-        
-		self.sensorType = SensorData.PRESSURE_SENSOR_TYPE
-		self.pressAddr = 0x5C
-		self.i2cBus = None
-		
-		if smbus:
-			try:
-				self.i2cBus = smbus.SMBus(1)
-				self.i2cBus.write_byte_data(self.pressAddr, 0, 0)
-				logging.info("Initialized pressure I2C bus at addr 0x%02X", self.pressAddr)
-			except Exception as e:
-				logging.warning("Failed to init I2C pressure sensor: %s", e)
-		else:
-			logging.warning("smbus not available. This will only work on Raspberry Pi with I2C enabled.")
-	
-	
-	def generateTelemetry(self) -> SensorData:
-		if not self.i2cBus:
-			logging.warning("I2C bus not initialized; returning existing sensorData.")
-			return self.sensorData
+        self.sensorType = SensorData.PRESSURE_SENSOR_TYPE
+        self.sh = None
 
-		try:
-			pressure = self.sensorData.getValue()  
+        try:
+            self.sh = SenseHat()
+            logging.info("SenseHat initialized for pressure sensor.")
+        except Exception as e:
+            logging.warning("Failed to init SenseHat for pressure: %s", e)
 
-			self.sensorData.setValue(pressure)
-			self.sensorData.setTypeID(SensorData.PRESSURE_SENSOR_TYPE)
+    def generateTelemetry(self) -> SensorData:
+        if not self.sh:
+            logging.warning("SenseHat not initialized; returning existing sensorData.")
+            return self.sensorData
 
-			return self.sensorData
+        try:
+            sensorData = SensorData(name=self.getName(), typeID=self.getTypeID())
+            sensorVal = self.sh.get_pressure()
+            sensorData.setValue(sensorVal)
+            self.latestSensorData = sensorData
+            logging.debug("Pressure reading: %.2f", sensorVal)
+            return sensorData
+        except Exception as e:
+            logging.warning("Error reading pressure from SenseHat: %s", e)
+            return self.sensorData
 
-		except Exception as e:
-			logging.warning("Error reading pressure sensor via I2C: %s", e)
-			return self.sensorData
-	
-	def getTelemetryValue(self) -> float:
-		pass
+    def getTelemetryValue(self) -> float:
+        if self.sh:
+            return self.sh.get_pressure()
+        return 0.0

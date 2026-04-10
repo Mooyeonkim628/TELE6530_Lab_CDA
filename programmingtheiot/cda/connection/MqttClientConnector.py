@@ -182,16 +182,14 @@ class MqttClientConnector(IPubSubClient):
 	
 	def onActuatorCommandMessage(self, client, userdata, msg):
 		logging.info('[Callback] Actuator command message received. Topic: %s.', msg.topic)
-		
 		if self.dataMsgListener:
 			try:
-				# assumes all data is encoded using UTF-8 (between GDA and CDA)
-				actuatorData = DataUtil().jsonToActuatorData(msg.payload.decode('utf-8'))
-				
-				self.dataMsgListener.handleActuatorCommandMessage(actuatorData)
+				self.dataMsgListener.handleIncomingMessage(
+					ResourceNameEnum.CDA_ACTUATOR_CMD_RESOURCE,
+					msg.payload.decode('utf-8'))
 			except:
 				logging.exception("Failed to convert incoming actuation command payload to ActuatorData: ")
-	
+
 	def publishMessage(self, resource: ResourceNameEnum = None, msg: str = None, qos: int = ConfigConst.DEFAULT_QOS) -> bool:
 		"""
 		"""
