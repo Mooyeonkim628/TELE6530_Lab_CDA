@@ -79,8 +79,8 @@ triggerHumidifierHumidityCeiling = 60.0
 cloudOverrideDurationSecs = 60
 
 # Smart plug account
-kasaEmail    = mookim@naver.com
-kasaPassword = sktkek2178
+kasaEmail    = YOURACCOUNT
+kasaPassword = YOURPASSWORD
 
 # camera settings
 streamHostAddr      = 127.0.0.1
