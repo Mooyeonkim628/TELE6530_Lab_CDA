@@ -8,6 +8,7 @@
 # 
 
 import logging
+import threading
 import time
 import unittest
 
@@ -30,6 +31,7 @@ class CoapClientPerformanceTest(unittest.TestCase):
 	"""
 	NS_IN_MILLIS = 1000000
 	MAX_TEST_RUNS = 10000
+	MAX_IN_FLIGHT = 10
 	
 	@classmethod
 	def setUpClass(self):
@@ -37,9 +39,17 @@ class CoapClientPerformanceTest(unittest.TestCase):
 		
 	def setUp(self):
 		self.coapClient = CoapClientConnector()
+		self.sentCount = 0
+		self.doneCount = 0
+		self.lock = threading.Lock()
 
 	def tearDown(self):
-		self.coapClient.disconnectClient()
+		try:
+			self.coapClient.disconnectClient()
+		except RuntimeError as e:
+			print("disconnectClient() skipped due to thread exhaustion:", e)
+		except Exception as e:
+			print("disconnectClient() failed:", e)
 					
 	@unittest.skip("Ignore for now.")
 	def testGetRequestCon(self):
@@ -59,7 +69,7 @@ class CoapClientPerformanceTest(unittest.TestCase):
 		
 		self._execTestGet(self.MAX_TEST_RUNS, False)
 
-	@unittest.skip("Ignore for now.")
+	#@unittest.skip("Ignore for now.")
 	def testPostRequestCon(self):
 		"""
 		Comment the annotation to perf test CON POST
@@ -68,7 +78,7 @@ class CoapClientPerformanceTest(unittest.TestCase):
 		
 		self._execTestPost(self.MAX_TEST_RUNS, True)
 
-	@unittest.skip("Ignore for now.")
+	#@unittest.skip("Ignore for now.")
 	def testPostRequestNon(self):
 		"""
 		Comment the annotation to perf test NON POST
@@ -111,17 +121,27 @@ class CoapClientPerformanceTest(unittest.TestCase):
 	def _execTestPost(self, maxTestRuns: int, useCon: bool):
 		sensorData = SensorData()
 		payload = DataUtil().sensorDataToJson(sensorData)
-		
+
 		startTime = time.time_ns()
-		
+
 		for seqNo in range(0, maxTestRuns):
-			self.coapClient.sendPostRequest(resource = ResourceNameEnum.CDA_SENSOR_MSG_RESOURCE, enableCON = useCon, payload = payload)
-			
+			self.coapClient.sendPostRequest(
+				resource=ResourceNameEnum.CDA_SENSOR_MSG_RESOURCE,
+				enableCON=useCon,
+				payload=payload
+			)
+
+			time.sleep(0.01)
+
 		endTime = time.time_ns()
 		elapsedMillis = (endTime - startTime) / self.NS_IN_MILLIS
-		
-		print("\nPOST message - useCON = " + str(useCon) + " [" + str(maxTestRuns) + "]: " + str(elapsedMillis) + " ms. Payload Len: " + str(len(payload)))
-		
+
+		print(
+			"\nPOST message - useCON = " + str(useCon) +
+			" [" + str(maxTestRuns) + "]: " + str(elapsedMillis) +
+			" ms. Payload Len: " + str(len(payload))
+		)
+
 		sleep(2)
 		
 	def _execTestPut(self, maxTestRuns: int, useCon: bool):

@@ -14,7 +14,7 @@
 clientID       = CDA_Mooyeon_Kim
 credFile       = ./cred/PiotMqttLocalCred.props
 certFile       = ./certs/ca.crt
-host           = localhost
+host           = 100.79.248.40
 port           = 1883
 securePort     = 8883
 defaultQoS     = 0
@@ -48,7 +48,7 @@ credFile       = ./cred/PiotPersistenceCred.props
 #
 [ConstrainedDevice]
 deviceLocationID = CDA_Mooyeon_Kim
-enableEmulator   = True 
+enableEmulator   = False 
 enableSenseHAT   = True
 enableMqttClient = True
 enableCoapServer = False
@@ -58,6 +58,7 @@ enableSystemPerformance = True
 enableSensing    = True
 enableSimulator  = False
 enableLogging    = True
+enableCamera = True
 pollCycleSecs    = 5
 testGdaDataPath  = /tmp/gda-data
 testCdaDataPath  = /tmp/cda-data
@@ -72,14 +73,14 @@ pressureSimCeiling = 1010.0
 tempSimFloor       =   15.0
 tempSimCeiling     =   25.0
 
-# configurable limits for actuator triggers
-handleTempChangeOnDevice = True
-triggerHvacTempFloor     = 18.0
-triggerHvacTempCeiling   = 20.0
-
 handleHumidityChangeOnDevice = False
-triggerHumidifierHumidityFloor = 35.0
-triggerHumidifierHumidityCeiling = 45.0
+triggerHumidifierHumidityFloor = 40.0
+triggerHumidifierHumidityCeiling = 60.0
+cloudOverrideDurationSecs = 60
+
+# Smart plug account
+kasaEmail    = mookim@naver.com
+kasaPassword = sktkek2178
 
 # camera settings
 streamHostAddr      = 127.0.0.1
@@ -94,3 +95,14 @@ streamFps           =   30
 imageFileExt        = .png
 videoFileExt        = .avi
 minMotionPixelsDiff = 10000
+
+# season mode: summer or winter
+seasonMode = summer
+
+# summer: AC mode
+triggerHvacTempFloor   = 20.0
+triggerHvacTempCeiling = 23.0
+
+# winter: heater mode 
+# triggerHvacTempFloor   = 24.0
+# triggerHvacTempCeiling = 27.0

@@ -74,7 +74,7 @@ class MqttClientConnectorTest(unittest.TestCase):
 		
 		self.mcc.disconnectClient()
 
-	#@unittest.skip("Ignore for now.")
+	@unittest.skip("Ignore for now.")
 	def testNewActuatorCmdPubSub(self):
 		qos = 1
 	
@@ -95,25 +95,26 @@ class MqttClientConnectorTest(unittest.TestCase):
 		
 		self.mcc.disconnectClient()
 		
-	@unittest.skip("Ignore for now.")
+	#@unittest.skip("Ignore for now.")
 	def testActuatorCmdPubSub(self):
-		qos = 0
+		qos = 1
+
+		# NOTE: delay can be anything you'd like - the sleep() calls are simply to slow things down a bit for observation
 		delay = self.cfg.getInteger(ConfigConst.MQTT_GATEWAY_SERVICE, ConfigConst.KEEP_ALIVE_KEY, ConfigConst.DEFAULT_KEEP_ALIVE)
 		
 		actuatorData = ActuatorData()
-		actuatorData.setCommand(7)
-		
-		self.mcc.setDataMessageListener(DefaultDataMessageListener())
-		
 		payload = DataUtil().actuatorDataToJson(actuatorData)
 		
+		# NOTE: the `DefaultDataMessageListener()` is just a placeholder for
+		# handling callbacks from the MQTT client - it is optional
+		self.mcc.setDataMessageListener(DefaultDataMessageListener())
 		self.mcc.connectClient()
 		
 		sleep(5)
-				
+		
 		self.mcc.publishMessage(resource = ResourceNameEnum.CDA_ACTUATOR_CMD_RESOURCE, msg = payload, qos = qos)
 		
-		sleep(delay + 5)
+		sleep(delay)
 		
 		self.mcc.disconnectClient()
 

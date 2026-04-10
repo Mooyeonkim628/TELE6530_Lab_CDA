@@ -56,7 +56,7 @@ class DeviceDataManagerWithCommsTest(unittest.TestCase):
 	def tearDown(self):
 		pass
 
-	#@unittest.skip("Ignore for now.")
+	@unittest.skip("Ignore for now.")
 	def testStartAndStopManagerWithMqtt(self):
 		"""
 		NOTE: Be sure to enable CoAP by setting the following flag to True
@@ -121,6 +121,31 @@ class DeviceDataManagerWithCommsTest(unittest.TestCase):
 		ddMgr.startManager()
 		
 		sleep(60)
+		
+		ddMgr.stopManager()
+
+	@unittest.skip("Ignore for now.")
+	def testActuatorDataCallback(self):
+		ddMgr = DeviceDataManager()
+		
+		actuatorData = ActuatorData(typeID = ConfigConst.HVAC_ACTUATOR_TYPE)
+		actuatorData.setCommand(ConfigConst.COMMAND_ON)
+		actuatorData.setStateData("This is a test.")
+		
+		ddMgr.handleActuatorCommandMessage(actuatorData)
+	
+		sleep(10)
+
+	def testDeviceDataMgrTimedIntegration(self):
+		# OPTION 1: For MQTT testing - be sure the MQTT client is enabled in `PiotConfig.props`.
+		#           and your MQTT broker is running (as per the Setup instructions above).
+		# OPTION 2: For CoAP testing - be sure the CoAP client is enabled in `PiotConfig.props`,
+		#           and your CoAP server is running within your GDA.
+		ddMgr = DeviceDataManager()
+		ddMgr.startManager()
+		
+		# 5 min's should be long enough to run the tests and manually adjust the emulator values
+		sleep(300)
 		
 		ddMgr.stopManager()
 
