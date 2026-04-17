@@ -1,74 +1,53 @@
 import logging
 import json
 import os
+import time
 import pigpio
 
 class IrTransmitterTask:
-    IR_TRANSMITTER_GPIO = 17         # IR LED 연결 핀 (필요시 변경)
+    IR_TRANSMITTER_GPIO = 12
     IR_CODES_FILE       = './config/ir_codes.json'
-    IR_FREQUENCY        = 38000      # 다이킨 표준 38kHz 캐리어
+    IR_FREQUENCY        = 38000
 
     def __init__(self):
         self.pi    = pigpio.pi()
         self.codes = {}
-
         if not self.pi.connected:
-            logging.warning("pigpio daemon not connected. Run: sudo systemctl start pigpiod")
+            logging.warning("pigpio daemon not connected.")
             return
-
-        # 저장된 IR 코드 로드
         if os.path.exists(self.IR_CODES_FILE):
             with open(self.IR_CODES_FILE, 'r') as f:
                 self.codes = json.load(f)
             logging.info("Loaded IR codes: %s", list(self.codes.keys()))
         else:
-            logging.warning("No IR codes file found at %s. Record codes first.", self.IR_CODES_FILE)
-
-        self.pi.set_mode(self.IR_TRANSMITTER_GPIO, pigpio.OUTPUT)
+            logging.warning("No IR codes file found at %s", self.IR_CODES_FILE)
         logging.info("IrTransmitterTask initialized on GPIO %d", self.IR_TRANSMITTER_GPIO)
 
     def send(self, codeName: str) -> bool:
-        """
-        codeName: 전송할 코드 이름 (예: 'hvac_on', 'hvac_off')
-        """
         if not self.pi.connected:
-            logging.warning("pigpio not connected.")
-            return False
-
+            self.pi = pigpio.pi()
+            if not self.pi.connected:
+                logging.warning("pigpio not connected.")
+                return False
         if codeName not in self.codes:
-            logging.warning("IR code '%s' not found. Available: %s", codeName, list(self.codes.keys()))
+            logging.warning("IR code '%s' not found.", codeName)
             return False
 
-        pulses     = self.codes[codeName]
-        pigpioPulses = []
-        on          = True  # 첫 펄스는 ON
-
+        pulses = self.codes[codeName]
+        on = True
         for duration in pulses:
             if on:
-                # 38kHz 캐리어로 ON 펄스 생성
-                pigpioPulses.append(pigpio.pulse(1 << self.IR_TRANSMITTER_GPIO, 0, duration))
+                self.pi.hardware_PWM(12, 38000, 400000)
+                time.sleep(duration / 1000000.0)
+                self.pi.hardware_PWM(12, 0, 0)
             else:
-                # OFF 펄스 (아무것도 안 보냄)
-                pigpioPulses.append(pigpio.pulse(0, 1 << self.IR_TRANSMITTER_GPIO, duration))
+                time.sleep(duration / 1000000.0)
             on = not on
-
-        self.pi.wave_clear()
-        self.pi.wave_add_generic(pigpioPulses)
-        waveID = self.pi.wave_create()
-
-        if waveID >= 0:
-            self.pi.wave_send_once(waveID)
-            while self.pi.wave_tx_busy():
-                import time
-                time.sleep(0.001)
-            self.pi.wave_delete(waveID)
-            logging.info("IR code '%s' sent successfully.", codeName)
-            return True
-        else:
-            logging.warning("Failed to create IR wave for '%s'.", codeName)
-            return False
+        self.pi.hardware_PWM(12, 0, 0)
+        logging.info("IR code '%s' sent successfully.", codeName)
+        return True
 
     def cleanup(self):
         if self.pi.connected:
-            self.pi.wave_clear()
+            self.pi.hardware_PWM(self.IR_TRANSMITTER_GPIO, 0, 0)
             self.pi.stop()

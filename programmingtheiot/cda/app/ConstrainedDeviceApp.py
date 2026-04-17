@@ -27,6 +27,10 @@ logging.basicConfig(
     level=logging.DEBUG,
     force=True
 )
+logging.getLogger("picamera2").setLevel(logging.WARNING)
+logging.getLogger("picamera2.picamera2").setLevel(logging.WARNING)
+logging.getLogger("PIL").setLevel(logging.WARNING)
+logging.getLogger("libcamera").setLevel(logging.WARNING)
 
 
 class ConstrainedDeviceApp():

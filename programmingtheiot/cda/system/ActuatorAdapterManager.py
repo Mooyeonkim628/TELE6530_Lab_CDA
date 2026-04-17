@@ -44,17 +44,14 @@ class ActuatorAdapterManager(object):
 		if self.useSenseHat:
 			logging.info("Loading embedded actuator tasks (real hardware).")
 
-			# Humidifier: Kasa 스마트플러그
 			hueModule = import_module('programmingtheiot.cda.embedded.HumidifierKasaActuatorTask', 'HumidifierKasaActuatorTask')
 			hueClazz  = getattr(hueModule, 'HumidifierKasaActuatorTask')
 			self.humidifierActuator = hueClazz()
 
-			# HVAC: IR 전송 태스크 사용
 			hveModule = import_module('programmingtheiot.cda.embedded.HvacI2cActuatorTask', 'HvacI2cActuatorTask')
 			hveClazz  = getattr(hveModule, 'HvacI2cActuatorTask')
 			self.hvacActuator = hveClazz()
 
-			# LED: 실제 Sense HAT LED 사용
 			leDisplayModule = import_module('programmingtheiot.cda.emulated.LedDisplayEmulatorTask', 'LedDisplayEmulatorTask')
 			leClazz = getattr(leDisplayModule, 'LedDisplayEmulatorTask')
 			self.ledDisplayActuator = leClazz()
@@ -78,7 +75,6 @@ class ActuatorAdapterManager(object):
 			logging.info("Loading sim actuator tasks.")
 			self.humidifierActuator = HumidifierActuatorSimTask()
 			self.hvacActuator       = HvacActuatorSimTask()
-			# ledDisplayActuator은 sim 없으므로 None 유지
 
 	def sendActuatorCommand(self, data: ActuatorData) -> ActuatorData:
 		if data and not data.isResponseFlagEnabled():
@@ -90,8 +86,18 @@ class ActuatorAdapterManager(object):
 				
 				if aType == ConfigConst.HUMIDIFIER_ACTUATOR_TYPE and self.humidifierActuator:
 					responseData = self.humidifierActuator.updateActuator(data)
+					if self.ledDisplayActuator:
+						ledData = ActuatorData(typeID=ConfigConst.LED_DISPLAY_ACTUATOR_TYPE, name=ConfigConst.LED_ACTUATOR_NAME)
+						ledData.setCommand(data.getCommand())
+						ledData.setStateData("HUM ON" if data.getCommand() == 1 else "HUM OFF")
+						self.ledDisplayActuator.updateActuator(ledData)
 				elif aType == ConfigConst.HVAC_ACTUATOR_TYPE and self.hvacActuator:
 					responseData = self.hvacActuator.updateActuator(data)
+					if self.ledDisplayActuator:
+						ledData = ActuatorData(typeID=ConfigConst.LED_DISPLAY_ACTUATOR_TYPE, name=ConfigConst.LED_ACTUATOR_NAME)
+						ledData.setCommand(data.getCommand())
+						ledData.setStateData("HVAC ON" if data.getCommand() == 1 else "HVAC OFF")
+						self.ledDisplayActuator.updateActuator(ledData)
 				elif aType == ConfigConst.LED_DISPLAY_ACTUATOR_TYPE and self.ledDisplayActuator:
 					responseData = self.ledDisplayActuator.updateActuator(data)
 				else:

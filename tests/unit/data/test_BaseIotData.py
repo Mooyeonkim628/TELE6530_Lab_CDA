@@ -43,7 +43,7 @@ class BaseIotDataTest(unittest.TestCase):
 		
 		self.assertEqual(td.getName(), ConfigConst.NOT_SET)
 		self.assertEqual(td.getTypeID(), ConfigConst.DEFAULT_TYPE_ID)
-		self.assertEqual(td.getLocationID(), "constraineddevice001") # from PiotConfig.props
+		self.assertEqual(td.getLocationID(), "CDA_Mooyeon_Kim") # from PiotConfig.props
 		self.assertEqual(td.getStatusCode(), ConfigConst.DEFAULT_STATUS)
 
 	def testParameterUpdates(self):
@@ -62,7 +62,7 @@ class BaseIotDataTest(unittest.TestCase):
 		td2 = self._createTestIotData()
 		
 		self.assertEqual(td.getName(), ConfigConst.NOT_SET)
-		self.assertEqual(td.getLocationID(), "constraineddevice001") # from PiotConfig.props
+		self.assertEqual(td.getLocationID(), "CDA_Mooyeon_Kim") # from PiotConfig.props
 		self.assertEqual(td.getStatusCode(), ConfigConst.DEFAULT_STATUS)
 		
 		td.updateData(td2)

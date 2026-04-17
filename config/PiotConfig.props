@@ -48,7 +48,7 @@ credFile       = ./cred/PiotPersistenceCred.props
 #
 [ConstrainedDevice]
 deviceLocationID = CDA_Mooyeon_Kim
-enableEmulator   = False 
+enableEmulator   = True 
 enableSenseHAT   = True
 enableMqttClient = True
 enableCoapServer = False
@@ -76,11 +76,11 @@ tempSimCeiling     =   25.0
 handleHumidityChangeOnDevice = False
 triggerHumidifierHumidityFloor = 40.0
 triggerHumidifierHumidityCeiling = 60.0
-cloudOverrideDurationSecs = 60
+cloudOverrideDurationSecs = 600
 
 # Smart plug account
-kasaEmail    = mookim@naver.com
-kasaPassword = sktkek2178
+kasaEmail    = YOURMAIL
+kasaPassword = YOURPW
 
 # camera settings
 streamHostAddr      = 127.0.0.1

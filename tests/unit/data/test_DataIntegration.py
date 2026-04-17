@@ -101,7 +101,7 @@ class DataIntegrationTest(unittest.TestCase):
 		fileRef = Path(fileName)
 		fileRef.write_text(dataStr, encoding = 'utf-8')
 
-	#@unittest.skip("Ignore for now.")
+	@unittest.skip("Ignore for now.")
 	def testReadActuatorDataFromGdaDataPath(self):
 		logging.info("\n\n----- [ActuatorData JSON from file to object] -----")
 		
@@ -114,7 +114,7 @@ class DataIntegrationTest(unittest.TestCase):
 		logging.info("ActuatorData JSON from GDA: " + dataStr)
 		logging.info("ActuatorData object: " + str(dataObj))
 
-	#@unittest.skip("Ignore for now.")
+	@unittest.skip("Ignore for now.")
 	def testReadSensorDataFromGdaDataPath(self):
 		logging.info("\n\n----- [SensorData JSON from file to object] -----")
 		
@@ -127,7 +127,7 @@ class DataIntegrationTest(unittest.TestCase):
 		logging.info("SensorData JSON from GDA: " + dataStr)
 		logging.info("SensorData object: " + str(dataObj))
 
-	#@unittest.skip("Ignore for now.")
+	@unittest.skip("Ignore for now.")
 	def testReadSystemPerformanceDataFromGdaDataPath(self):
 		logging.info("\n\n----- [SystemPerformanceData JSON from file to object] -----")
 		

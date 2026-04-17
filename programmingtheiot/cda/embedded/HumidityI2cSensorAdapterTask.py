@@ -1,18 +1,18 @@
 import logging
 from sense_hat import SenseHat
 from programmingtheiot.data.SensorData import SensorData
-from programmingtheiot.common.ConfigConst import ConfigConst
+import programmingtheiot.common.ConfigConst as ConfigConst
 from programmingtheiot.cda.sim.BaseSensorSimTask import BaseSensorSimTask
 from programmingtheiot.cda.sim.SensorDataGenerator import SensorDataGenerator
 
 class HumidityI2cSensorAdapterTask(BaseSensorSimTask):
     def __init__(self):
         super(HumidityI2cSensorAdapterTask, self).__init__(
-            typeID=SensorData.HUMIDITY_SENSOR_TYPE,
+            typeID=ConfigConst.HUMIDITY_SENSOR_TYPE,
             minVal=SensorDataGenerator.LOW_NORMAL_ENV_HUMIDITY,
             maxVal=SensorDataGenerator.HI_NORMAL_ENV_HUMIDITY
         )
-        self.sensorType = SensorData.HUMIDITY_SENSOR_TYPE
+        self.sensorType = ConfigConst.HUMIDITY_SENSOR_TYPE
         self.sh = None
 
         try:

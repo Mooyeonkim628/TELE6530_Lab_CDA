@@ -346,7 +346,6 @@ class DeviceDataManager(IDataMessageListener):
 				temp = data.getValue()
 
 				if self.seasonMode == 'summer':
-					# 여름: 23도 이상 → AC ON, 20도 이하 → AC OFF
 					if temp >= self.triggerHvacTempCeiling:
 						ad.setCommand(ConfigConst.COMMAND_ON)
 						ad.setStateData("HVAC ON (cooling)")
@@ -359,7 +358,6 @@ class DeviceDataManager(IDataMessageListener):
 						return
 
 				elif self.seasonMode == 'winter':
-					# 겨울: 24도 이하 → 히터 ON, 27도 이상 → 히터 OFF
 					if temp <= self.triggerHvacTempFloor:
 						ad.setCommand(ConfigConst.COMMAND_ON)
 						ad.setStateData("HVAC ON (heating)")

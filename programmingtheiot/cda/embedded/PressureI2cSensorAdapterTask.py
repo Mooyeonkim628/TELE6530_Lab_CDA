@@ -1,18 +1,18 @@
 import logging
 from sense_hat import SenseHat
 from programmingtheiot.data.SensorData import SensorData
-from programmingtheiot.common.ConfigConst import ConfigConst
+import programmingtheiot.common.ConfigConst as ConfigConst
 from programmingtheiot.cda.sim.BaseSensorSimTask import BaseSensorSimTask
 from programmingtheiot.cda.sim.SensorDataGenerator import SensorDataGenerator
 
 class PressureI2cSensorAdapterTask(BaseSensorSimTask):
     def __init__(self):
         super(PressureI2cSensorAdapterTask, self).__init__(
-            typeID=SensorData.PRESSURE_SENSOR_TYPE,
+            typeID=ConfigConst.PRESSURE_SENSOR_TYPE,
             minVal=SensorDataGenerator.LOW_NORMAL_ENV_PRESSURE,
             maxVal=SensorDataGenerator.HI_NORMAL_ENV_PRESSURE
         )
-        self.sensorType = SensorData.PRESSURE_SENSOR_TYPE
+        self.sensorType = ConfigConst.PRESSURE_SENSOR_TYPE
         self.sh = None
 
         try:
@@ -27,8 +27,14 @@ class PressureI2cSensorAdapterTask(BaseSensorSimTask):
             return self.sensorData
 
         try:
+            import time
             sensorData = SensorData(name=self.getName(), typeID=self.getTypeID())
             sensorVal = self.sh.get_pressure()
+
+            if sensorVal == 0.0:
+                time.sleep(0.5)
+                sensorVal = self.sh.get_pressure()
+
             sensorData.setValue(sensorVal)
             self.latestSensorData = sensorData
             logging.debug("Pressure reading: %.2f", sensorVal)
