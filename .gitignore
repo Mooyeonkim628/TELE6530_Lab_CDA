@@ -14,3 +14,8 @@ config/PiotConfig.props*.crt
 *.csr
 *.srl
 dump.rdb
+
+*.crt
+*.key
+*.csr
+*.srl

@@ -133,5 +133,21 @@ class CameraTask:
             sensorData.setValue(1.0)
             self.dataMsgListener.handleSensorMessage(sensorData)
 
+            time.sleep(1)
+
+            resetData = SensorData(name=ConfigConst.MOTION_SENSOR_NAME, typeID=ConfigConst.MOTION_SENSOR_TYPE)
+            resetData.setValue(0.0)
+            self.dataMsgListener.handleSensorMessage(resetData)
+
     def isRunning(self) -> bool:
         return self.running
+    
+    def pause(self):
+        self.motionThread = None
+        self.running = False
+        time.sleep(0.2)
+
+    def resume(self):
+        self.running = True
+        self.motionThread = threading.Thread(target=self._detectMotion, daemon=True)
+        self.motionThread.start()

@@ -65,7 +65,7 @@ class DeviceDataManager(IDataMessageListener):
 		self.sysPerfDataListener   = None
 		self.telemetryDataListener = None
 		self.actuatorResponseCache = {}
-		self.actuatorAdapterMgr    = ActuatorAdapterManager(dataMsgListener=self)
+		self.actuatorAdapterMgr    = None
 
 		self.enableRedisStore = self.configUtil.getBoolean(
 			section=ConfigConst.CONSTRAINED_DEVICE, key="enablePersistenceClient")
@@ -270,32 +270,26 @@ class DeviceDataManager(IDataMessageListener):
 
 	def startManager(self):
 		logging.info("Starting DeviceDataManager...")
-
 		if self.sysPerfMgr:
 			self.sysPerfMgr.startManager()
-
 		if self.sensorAdapterMgr:
 			self.sensorAdapterMgr.startManager()
-
 		if self.cameraTask:
-			self.cameraTask.start()
-			logging.info("CameraTask started.")
-
+				self.cameraTask.start()
+				logging.info("CameraTask started.")
+				if self.actuatorAdapterMgr and self.actuatorAdapterMgr.hvacActuator:
+						self.actuatorAdapterMgr.hvacActuator.cameraTask = self.cameraTask
 		if self.redisClient and self.enableRedisStore:
-			self.redisClient.connectClient()
-
+				self.redisClient.connectClient()
 		if self.mqttClient:
-			self.mqttClient.connectClient()
-			self.mqttClient.subscribeToTopic(
-				ResourceNameEnum.CDA_ACTUATOR_CMD_RESOURCE,
-				callback=self.handleIncomingMessage,
-				qos=ConfigConst.DEFAULT_QOS)
-
+				self.mqttClient.connectClient()
+				self.mqttClient.subscribeToTopic(
+                        ResourceNameEnum.CDA_ACTUATOR_CMD_RESOURCE,
+                        callback=self.handleIncomingMessage,
+                        qos=ConfigConst.DEFAULT_QOS)
 		if self.coapServer:
-			self.coapServer.startServer()
-
+				self.coapServer.startServer()
 		logging.info("Started DeviceDataManager.")
-
 	def stopManager(self):
 		logging.info("Stopping DeviceDataManager...")
 

@@ -13,9 +13,9 @@ from programmingtheiot.cda.sim.HumidifierActuatorSimTask import HumidifierActuat
 
 class ActuatorAdapterManager(object):
 
-	def __init__(self, dataMsgListener: IDataMessageListener = None):
+	def __init__(self, dataMsgListener: IDataMessageListener = None, cameraTask=None):
 		self.dataMsgListener = dataMsgListener
-		
+		self.cameraTask = cameraTask
 		self.configUtil = ConfigUtil()
 		
 		self.useSimulator = \
@@ -50,11 +50,13 @@ class ActuatorAdapterManager(object):
 
 			hveModule = import_module('programmingtheiot.cda.embedded.HvacI2cActuatorTask', 'HvacI2cActuatorTask')
 			hveClazz  = getattr(hveModule, 'HvacI2cActuatorTask')
-			self.hvacActuator = hveClazz()
+			self.hvacActuator = hveClazz(cameraTask=self.cameraTask)
 
 			leDisplayModule = import_module('programmingtheiot.cda.emulated.LedDisplayEmulatorTask', 'LedDisplayEmulatorTask')
 			leClazz = getattr(leDisplayModule, 'LedDisplayEmulatorTask')
 			self.ledDisplayActuator = leClazz()
+
+
 
 		elif self.useEmulator:
 			logging.info("Loading emulated actuator tasks (pisense emulator).")
